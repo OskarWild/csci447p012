@@ -1,6 +1,6 @@
 # PC_RUN.md — the one job for Claude on the lab PC (Phase 5 sweep)
 
-You are Claude on the lab PC (Ubuntu). The human has started you and **left**. Nobody will answer questions until the job is done, so do not stop to ask. Do the steps below in order. Then write the report (step 6) and stop.
+You are Claude on the lab PC (Ubuntu). The human has started you and **left**. Nobody will answer questions until the job is done, so do not stop to ask. Do the steps below in order. Then write the report (step 6) and stop. Work only on the `main` branch.
 
 ## Context: what is already done
 
@@ -18,10 +18,7 @@ You are Claude on the lab PC (Ubuntu). The human has started you and **left**. N
    ```
    Both must succeed: the first prints `OK` and a BreastCancer TabPFN AUC of about 0.993, and the second shows 40 passed. If either fails, do not run the sweep. Go to step 6 and report the error output.
 
-2. **Make the branch.**
-   ```bash
-   git checkout -b sagyzdop/phase5
-   ```
+2. **Stay on `main`.** All work goes to `main`, with no branches. Check with `git branch --show-current`.
 
 3. **Start the sweep in the background.** It survives the session ending, and it is resumable: re-running it skips finished units.
    ```bash
@@ -41,8 +38,10 @@ You are Claude on the lab PC (Ubuntu). The human has started you and **left**. N
    PYTHONWARNINGS=ignore .venv/bin/python scripts/06_pilot_check.py
    git add results/runs/sweep results/runs/all_runs.csv results/tables/P4_pilot_vs_paper.* results/P4_time_estimate.md results/env
    git commit -m "phase5: full sweep runs (lab PC)" -m "Co-Authored-By: Claude <noreply@anthropic.com>"
-   git push -u origin sagyzdop/phase5
+   git pull --rebase origin main
+   git push origin main
    ```
+   - The Mac may have pushed code to `main` while the sweep ran, so `git pull --rebase` first. If the rebase conflicts only in `docs/PROGRESS.md`, keep both sides. For any other conflict, run `git rebase --abort`, do not push, and say so in the report. Never force-push.
    - Do **not** commit `results/cache/`, `results/logs/`, `.venv/` or anything over 50 MB. Check with `git status` before committing.
    - `00_check_env.py` rewrites `results/env/` with this PC's setup. That is wanted: it documents the machine.
    - If the push fails (for example, no credentials), leave the commit in place. Say so in the report.

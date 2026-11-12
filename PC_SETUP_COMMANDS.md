@@ -17,12 +17,12 @@ curl -LsSf https://astral.sh/uv/install.sh | sh
 source $HOME/.local/bin/env
 ```
 
-## 3. Get the code (the phase4 branch has everything)
+## 3. Get the code (everything is on `main`)
 ```bash
 git clone --recurse-submodules https://github.com/OskarWild/csci447p012.git
 ```
 ```bash
-cd csci447p012 && git checkout sagyzdop/phase4
+cd csci447p012
 ```
 
 ## 4. Create the environment (same versions as the Mac)
@@ -53,7 +53,7 @@ Make a **classic** token at github.com → Settings → Developer settings → P
 git config --global credential.helper 'cache --timeout=172800'
 ```
 ```bash
-git push --dry-run origin sagyzdop/phase4
+git push --dry-run origin main
 ```
 Username = your GitHub name, password = the token. Git then remembers it for 48 hours (in memory only, not on disk).
 
