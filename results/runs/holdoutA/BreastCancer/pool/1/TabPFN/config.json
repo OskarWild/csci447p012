@@ -1,0 +1,18 @@
+{
+ "protocol": "holdoutA",
+ "dataset": "BreastCancer",
+ "size": "pool",
+ "seed": 1,
+ "stratified": true,
+ "note": "",
+ "cf_scheme": "skf5",
+ "method": "TabPFN",
+ "budget": {
+  "xgb": 60,
+  "pfnb": 40,
+  "s": 20
+ },
+ "n_train": 364,
+ "n_val": 91,
+ "n_test": 114
+}

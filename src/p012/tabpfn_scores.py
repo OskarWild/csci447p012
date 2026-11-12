@@ -1,6 +1,7 @@
 """TabPFN probabilities for a split: cross-fitted (out-of-fold) training scores, full-fit val/test
 scores, conversion to centred log-probabilities (CLAUDE.md 4.1-4.2), and an .npz disk cache."""
 import logging
+import time
 from pathlib import Path
 from typing import Callable
 
@@ -92,19 +93,23 @@ def compute_scores(X_tr, y_tr, X_va, X_te, seed: int, n_classes: int, mode: str 
     mode 'insample': training rows are scored by the TabPFN that holds them in context (original code)."""
     fp = fit_predict or (lambda Xc, yc, Xq, s: tabpfn_fit_predict(Xc, yc, Xq, s, n_classes))
     X_tr, X_va, X_te = (np.asarray(a, dtype=float) for a in (X_tr, X_va, X_te))
+    t0 = time.perf_counter()
     full = fp(X_tr, y_tr, np.vstack([X_tr, X_va, X_te]), seed)
     n_tr, n_va = len(X_tr), len(X_va)
-    out = {"p_val": full[n_tr:n_tr + n_va], "p_test": full[n_tr + n_va:], "cf_scheme": "insample"}
+    out = {"p_val": full[n_tr:n_tr + n_va], "p_test": full[n_tr + n_va:], "cf_scheme": "insample",
+           "seconds_full": time.perf_counter() - t0, "seconds_crossfit": 0.0}
     if mode == "insample":
         out["p_train"] = full[:n_tr]
     elif mode == "oof":
         folds, scheme = crossfit_folds(y_tr, seed)
         if scheme == "loo":
             log.info("cross-fitting falls back to leave-one-out (n_train=%d)", n_tr)
+        t0 = time.perf_counter()
         p_tr = np.full((n_tr, n_classes), np.nan)
         for rest, held in folds:
             p_tr[held] = fp(X_tr[rest], y_tr[rest], X_tr[held], seed)
         out["p_train"], out["cf_scheme"] = p_tr, scheme
+        out["seconds_crossfit"] = time.perf_counter() - t0
     else:
         raise ValueError(mode)
     return out
@@ -125,12 +130,13 @@ def load_scores(f: Path) -> dict:
 
 
 def get_scores(split, ds, protocol: str, size: str, seed: int, mode: str = "oof") -> dict:
-    """Cached TabPFN probabilities for a data.Split; recomputed if the cached row indices differ."""
+    """Cached TabPFN probabilities for a data.Split; recomputed if the cached row indices differ
+    (or the file predates the timing fields)."""
     f = cache_file(protocol, ds.name, size, seed, mode)
     idx = {"train": split.train_idx, "val": split.val_idx, "test": split.test_idx}
     if f.exists():
         d = load_scores(f)
-        if all(np.array_equal(d[f"idx_{k}"], v) for k, v in idx.items()):
+        if "seconds_full" in d and all(np.array_equal(d[f"idx_{k}"], v) for k, v in idx.items()):
             return d
     X_tr, y_tr = split.part("train")
     scores = compute_scores(X_tr, y_tr, split.part("val")[0], split.part("test")[0], seed, ds.n_classes, mode)

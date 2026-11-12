@@ -158,6 +158,7 @@ class Result:
     seconds: float
     info: dict = field(default_factory=dict)
     evals_result: dict = field(default_factory=dict)
+    booster: xgb.Booster | None = field(default=None, repr=False)   # kept in memory only (training curves)
 
 
 @dataclass
@@ -204,14 +205,14 @@ def _result(name, task, tf: TreeFit, fusion, t0, **info) -> Result:
                   time.perf_counter() - t0,
                   {"params": tf.params, "best_iteration": getattr(tf.booster, "best_iteration", None),
                    **({"s": fusion.s, "b": fusion.b} if fusion is not None else {}), **info},
-                  tf.evals_result)
+                  tf.evals_result, tf.booster)
 
 
-def pfnb_mle(task: Task, name="PFNB-MLE", rounds=None, early=True) -> Result:
+def pfnb_mle(task: Task, name="PFNB-MLE", rounds=None, early=True, n_trials=None) -> Result:
     """s-MLE (4.4): fit (s, b) on the out-of-fold training scores, then tune trees with them fixed."""
     t0 = time.perf_counter()
     fusion = fit_s(task.z("tr"), task.y_tr)
-    tf, _ = tune_trees(task, fusion, load_config()["hpo"]["trials_pfnb"], rounds=rounds, early=early)
+    tf, _ = tune_trees(task, fusion, n_trials or load_config()["hpo"]["trials_pfnb"], rounds=rounds, early=early)
     return _result(name, task, tf, fusion, t0)
 
 
@@ -231,18 +232,46 @@ def pfnb_joint(task: Task, mle: Result) -> Result:
     return _result("PFNB-Joint", task, tf, fusion, t0 - mle.seconds, s_history=s_log)
 
 
-def pfnb_optuna(task: Task, xgb_history: list, name="PFNB-Optuna", rounds=None, early=True) -> Result:
+def pfnb_optuna(task: Task, xgb_history: list, name="PFNB-Optuna", rounds=None, early=True,
+                n_stage1=None, n_s=None) -> Result:
     """Paper replica (4.4): stage 1 = trees tuned with s = 0 (reused from the XGB study's first
     `trials_pfnb` trials), stage 2 = Optuna over s only (`trials_s`), b fixed at logit(mean y)."""
     h = load_config()["hpo"]
+    n_stage1, n_s = n_stage1 or h["trials_pfnb"], n_s or h["trials_s"]
     t0 = time.perf_counter()
-    stage1 = max(xgb_history[:h["trials_pfnb"]], key=lambda t: t[0])[1]
+    stage1 = max(xgb_history[:n_stage1], key=lambda t: t[0])[1]
     b = b0(task.y_tr) if task.n_classes == 2 else 0.0
 
     def run(trial):
         fusion = Fusion(hpo.s_space(trial), b)
         tf = fit_trees(task, stage1.params, fusion, rounds, early)
         return tf.val_auc, (tf, fusion)
-    _, (tf, fusion), _ = hpo.search(run, h["trials_s"], task.seed)
-    stage1_seconds = sum(t[1].seconds for t in xgb_history[:h["trials_pfnb"]])
-    return _result(name, task, tf, fusion, t0 - stage1_seconds, stage1_trials=h["trials_pfnb"])
+    _, (tf, fusion), _ = hpo.search(run, n_s, task.seed)
+    stage1_seconds = sum(t[1].seconds for t in xgb_history[:n_stage1])
+    return _result(name, task, tf, fusion, t0 - stage1_seconds, stage1_trials=n_stage1, s_trials=n_s)
+
+
+def learning_curves(booster: xgb.Booster, task: Task, fusion: Fusion | None, base_score=None) -> dict:
+    """Log-loss and accuracy after each boosting round on train and val (CLAUDE.md F04).
+    Per-round tree outputs come from predicting one round at a time with a zero margin; their running
+    sum plus the starting margin (transformer, or logit(base_score) for plain XGB) is the model's margin."""
+    from sklearn.metrics import log_loss
+    n_rounds = booster.num_boosted_rounds()
+    out = {"round": np.arange(1, n_rounds + 1), "best_iteration": getattr(booster, "best_iteration", n_rounds - 1)}
+    for which, X, y in (("train", task.X_tr, task.y_tr), ("val", task.X_va, task.y_va)):
+        K, n = task.n_classes, len(y)
+        zero = np.zeros(n if K == 2 else (n, K))
+        steps = np.stack([booster.predict(dmatrix(X, margin=zero), output_margin=True, iteration_range=(i, i + 1))
+                          for i in range(n_rounds)])
+        if fusion is not None:
+            start = fusion.margin(task.z("tr" if which == "train" else "va"))
+        else:
+            start = float(logit(base_score)) if base_score is not None else 0.0
+        margins = np.cumsum(steps.reshape(n_rounds, n, -1) if K > 2 else steps, axis=0) + start
+        ll, acc = [], []
+        for m in margins:
+            p = np.column_stack([1 - expit(m), expit(m)]) if K == 2 else softmax(m, axis=1)
+            ll.append(log_loss(y, p, labels=np.arange(K)))
+            acc.append(np.mean(p.argmax(1) == y))
+        out[f"{which}_logloss"], out[f"{which}_accuracy"] = np.array(ll), np.array(acc)
+    return out

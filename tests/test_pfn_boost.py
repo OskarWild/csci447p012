@@ -76,3 +76,16 @@ def test_binary_logit_matches_centred_logits():
     z = logits(p)
     assert np.allclose(binary_logit(p), z[:, 1] - z[:, 0])
     assert np.allclose(z.sum(1), 0)
+
+
+@pytest.mark.parametrize("n_classes", [2, 3])
+def test_learning_curves_match_xgboost_logloss(n_classes):
+    """The per-round log-loss rebuilt from tree outputs equals XGBoost's own eval log."""
+    t = make_task(n_classes)
+    fusion = Fusion(0.9, 0.1 if n_classes == 2 else 0.0)
+    tf = fit_trees(t, PARAMS, fusion, rounds=30, early=False)
+    from p012.pfn_boost import learning_curves
+    c = learning_curves(tf.booster, t, fusion)
+    key = "logloss" if n_classes == 2 else "mlogloss"
+    assert np.allclose(c["val_logloss"], tf.evals_result["val"][key], atol=1e-5)
+    assert np.allclose(c["train_logloss"], tf.evals_result["train"][key], atol=1e-5)
