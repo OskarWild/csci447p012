@@ -1,1 +1,5 @@
-# All numbers: arXiv 2502.02672v2 Appendix B Table 3 (XGBoost + TabPFN), read from the HTML page on 2026-11-11. Rows for other datasets/sizes are not yet filled: add them from the PDF in Phase 0.
+# All numbers: arXiv 2502.02672v2 Appendix B Table 3 (XGBoost + TabPFN), PDF page 17.
+# Phase 0 (2026-11-12): all 88 rows (15 datasets x sizes) extracted from the PDF text layer with pdfminer
+# (word coordinates -> rows) and cross-checked against the 29 rows previously read from the HTML page.
+# 28/29 matched exactly; 1 cell corrected (BreastCancer n=10 pfnboost_se 0.0013 -> 0.0020). `car` has no row in Table 3.
+# size_label "full" = the paper's full-size row (train != val). TabPFN and Selection have no standard error in the paper.
