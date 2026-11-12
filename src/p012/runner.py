@@ -13,7 +13,7 @@ from . import pfn_boost as pb
 from .config import load_config, path
 from .data import Dataset, Split, as_xgb_frame
 from .metrics import auc, evaluate
-from .tabpfn_scores import get_scores
+from .tabpfn_scores import clip_renorm, get_scores
 
 log = logging.getLogger(__name__)
 
@@ -151,6 +151,18 @@ def run_unit(protocol: str, ds: Dataset, split: Split, size: str, seed: int, abl
             {"wall_seconds": time.perf_counter() - t_unit, "n_train": len(task.y_tr), "n_val": len(task.y_va),
              "n_test": len(task.y_te), "n_features": task.X_tr.shape[1], "n_classes": task.n_classes}))
     return "done"
+
+
+def tabpfn_oof_summary(protocol: str, ds: Dataset, split: Split, size: str, seed: int) -> Path:
+    """TabPFN's out-of-fold metrics on the training rows (meta-features, CLAUDE.md 4.9), read from the score
+    cache. results/cache/ is not in git, so this small file carries them from the machine that ran the unit."""
+    f = run_dir(protocol, ds.name, size, seed, "x").parent / "tabpfn_oof.json"
+    if not f.exists():
+        sc = get_scores(split, ds, protocol, size, seed, "oof")
+        m = evaluate(split.part("train")[1], clip_renorm(sc["p_train"]))
+        f.write_text(json.dumps({"cf_scheme": str(sc["cf_scheme"]), "log_loss": m["log_loss"], "ece": m["ece"],
+                                 "auc": m["auc"]}))
+    return f
 
 
 def s_sweep(task: pb.Task, mle: pb.Result, out: Path):

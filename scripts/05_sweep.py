@@ -18,7 +18,7 @@ from joblib import Parallel, delayed  # noqa: E402
 
 from p012.config import load_config  # noqa: E402
 from p012.data import load_dataset, sweep_sizes, sweep_split  # noqa: E402
-from p012.runner import run_unit  # noqa: E402
+from p012.runner import run_unit, tabpfn_oof_summary  # noqa: E402
 
 PAPER_ABLATION = ["XGB-Paper", "PFNB-Paper"]
 from p012.tabpfn_scores import get_scores  # noqa: E402
@@ -51,6 +51,9 @@ def main():
     n_jobs = max(1, os.cpu_count() // cfg["xgb"]["nthread"])
     for msg in Parallel(n_jobs=n_jobs, return_as="generator")(delayed(job)(*u) for u in todo):
         logging.info(msg)
+    for n, size, seed in todo:    # TabPFN OOF metrics for the meta-study (the cache stays on this machine)
+        ds = load_dataset(n)
+        tabpfn_oof_summary("sweep", ds, sweep_split(ds, size, seed), size, seed)
     logging.info("all units finished")
 
 

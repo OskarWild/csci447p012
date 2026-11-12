@@ -1,6 +1,9 @@
 results/cache/
 results/logs/
 results/runs/**/preds_*.npz
+# sweep validation predictions are small and needed for the meta-features (CLAUDE.md 4.9)
+!results/runs/sweep/**/preds_val.npz
+.venv/
 assets/
 *.cpkt
 *.ckpt
