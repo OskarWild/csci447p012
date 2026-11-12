@@ -1,0 +1,16 @@
+\begin{tabular}{lllllll}
+\toprule
+method & change & auc & log\_loss & ece & fit time (s) & mean s \\
+\midrule
+PFNB-MLE & main method: s-MLE on out-of-fold scores, early stopping & 0.9874 ± 0.0112 & 0.2210 ± 0.1389 & 0.0890 ± 0.0134 & 22.8 ± 5.3 & 0.768 \\
+PFNB-MLE-insample & s-MLE on in-sample TabPFN scores (original code's leak) & 0.9923 ± 0.0009 & 0.2221 ± 0.0574 & 0.0922 ± 0.0133 & 13.2 ± 8.0 & 1.42 \\
+PFNB-Optuna & s tuned by Optuna (paper) instead of s-MLE & 0.9774 ± 0.0271 & 0.5192 ± 0.5073 & 0.0930 ± 0.0044 & 55.2 ± 44.0 & 2e+05 \\
+PFNB-Joint & s-MLE, then s refit on validation with trees fixed (2 rounds) & 0.9846 ± 0.0184 & 0.4012 ± 0.4113 & 0.0754 ± 0.0292 & 23.2 ± 5.5 & 5.06 \\
+PFNB-MLE-20r & fixed 20 boosting rounds, no early stopping & 0.9929 ± 0.0013 & 0.1555 ± 0.0208 & 0.0868 ± 0.0105 & 18.2 ± 2.3 & 0.768 \\
+PFNB-Paper & paper config: paper search space, 20 rounds, s by Optuna & 0.9749 ± 0.0266 & 0.6832 ± 0.4270 & 0.1619 ± 0.1144 & 7.7 ± 1.1 & 2e+05 \\
+XGB-Paper & plain XGBoost with the paper config & 0.9843 ± 0.0047 & 0.6139 ± 0.0237 & 0.1421 ± 0.1124 & 3.5 ± 0.5 &  \\
+TabPFN-sMLE & TabPFN scaled by s-MLE, no trees & 0.9931 ± 0.0013 & 0.1477 ± 0.0146 & 0.0845 ± 0.0096 & 16.3 ± 2.0 & 0.768 \\
+XGB & plain XGBoost (s = 0) & 0.9867 ± 0.0017 & 0.2163 ± 0.0315 & 0.0978 ± 0.0267 & 59.5 ± 51.1 &  \\
+TabPFN & TabPFN alone (s -> infinity) & 0.9931 ± 0.0013 & 0.1580 ± 0.0194 & 0.0832 ± 0.0086 & 5.5 ± 0.8 &  \\
+\bottomrule
+\end{tabular}

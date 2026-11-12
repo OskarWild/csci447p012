@@ -1,0 +1,19 @@
+{
+ "protocol": "cv5",
+ "dataset": "BreastCancer",
+ "size": "pool",
+ "seed": 1,
+ "stratified": true,
+ "note": "",
+ "cf_scheme": "skf5",
+ "method": "Selection",
+ "budget": {
+  "xgb": 25,
+  "pfnb": 25,
+  "s": 8,
+  "stage1": 17
+ },
+ "n_train": 291,
+ "n_val": 73,
+ "n_test": 91
+}

@@ -10,13 +10,13 @@ from .pfn_boost import Result, Task, _result, tune_trees
 from .tabpfn_scores import clip_renorm
 
 
-def xgb_baseline(task: Task, kind="main", rounds=None, early=True, name="XGB"):
+def xgb_baseline(task: Task, kind="main", rounds=None, early=True, name="XGB", n_trials=None):
     """Plain XGBoost tuned with `trials_xgb` trials. Binary: base_score = mean(y_train), so it equals
     PFN-Boost at s = 0. Returns (Result, history) - the history feeds PFNB-Optuna's stage 1."""
     t0 = time.perf_counter()
     base = float(task.y_tr.mean()) if task.n_classes == 2 else None
-    tf, history = tune_trees(task, None, load_config()["hpo"]["trials_xgb"], kind, rounds, early, base)
-    return _result(name, task, tf, None, t0), history
+    tf, history = tune_trees(task, None, n_trials or load_config()["hpo"]["trials_xgb"], kind, rounds, early, base)
+    return _result(name, task, tf, None, t0, base_score=base), history
 
 
 def tabpfn_baseline(task: Task, seconds: float = 0.0) -> Result:
@@ -38,7 +38,7 @@ def _with_probs(X: pd.DataFrame, p: np.ndarray) -> pd.DataFrame:
     return X
 
 
-def stacking(task: Task) -> Result:
+def stacking(task: Task, n_trials=None) -> Result:
     """XGBoost on [X, TabPFN probabilities]: out-of-fold probabilities for training rows,
     full-fit probabilities for validation and test rows. Same budget as XGB."""
     t0 = time.perf_counter()
@@ -47,6 +47,5 @@ def stacking(task: Task) -> Result:
                    _with_probs(task.X_te, clip_renorm(task.p_te)), task.y_te,
                    task.n_classes, task.seed, task.p_tr, task.p_va, task.p_te)
     base = float(task.y_tr.mean()) if task.n_classes == 2 else None
-    tf, _ = tune_trees(stacked, None, load_config()["hpo"]["trials_xgb"], base_score=base)
-    res = _result("Stacking", stacked, tf, None, t0)
-    return res
+    tf, _ = tune_trees(stacked, None, n_trials or load_config()["hpo"]["trials_xgb"], base_score=base)
+    return _result("Stacking", stacked, tf, None, t0)

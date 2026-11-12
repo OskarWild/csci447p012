@@ -22,3 +22,18 @@ conda run -n p012 python scripts/00_check_env.py
 conda run -n p012 python scripts/01_make_T1.py
 conda run -n p012 python -m pytest -q
 ```
+
+## Phase 3 (2026-11-12, MacBook CPU, branch `sagyzdop/phase3`)
+
+Ran CLAUDE.md 5.1 completely: hold-out A (5 seeds, 7 methods + 5 ablation methods, training curves and s-sweep on seed 0), hold-out B (5 seeds), 5-fold CV (25 trials per search). 130 runs, about 15 minutes wall-clock on 2 parallel workers (`results/logs/bc_course.log`).
+- Outputs: `results/tables/T2_bc_holdoutA`, `T3_bc_holdoutB`, `T4_bc_cv5`, `T5_bc_ablation` (.csv/.md/.tex); `results/figures/F02`-`F08`, `F14` (.png 300 dpi + .pdf); `results/RESULTS_SUMMARY.md`; per-run files in `results/runs/` and `results/runs/all_runs.csv`.
+- Headline numbers are in `results/RESULTS_SUMMARY.md` (generated, with source paths).
+- Surprises, both written up in `docs/QUESTIONS.md`: (1) validation AUC saturates at 1.0 with 91 validation rows, so HPO can pick an overfit configuration (hold-out A seed 0); (2) the paper's enqueued s = 1e6 makes probabilities exactly 0/1, so AUC collapses through ties (PFNB-Optuna seed 3).
+- New tests: per-round training curves rebuilt from tree outputs match XGBoost's own eval log (`pytest -q`: 39 passed).
+
+Reproduce:
+```
+PYTHONWARNINGS=ignore conda run -n p012 python scripts/03_bc_course.py      # resumable
+conda run -n p012 python scripts/04_bc_tables_figures.py
+conda run -n p012 python scripts/90_make_summary.py
+```
