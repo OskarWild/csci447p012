@@ -1,0 +1,3 @@
+[submodule "external/LLM-Boost"]
+	path = external/LLM-Boost
+	url = https://github.com/MayukaJ/LLM-Boost
