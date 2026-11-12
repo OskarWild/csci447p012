@@ -52,7 +52,10 @@ def tabpfn_fit_predict(Xc: np.ndarray, yc: np.ndarray, Xq: np.ndarray, seed: int
     keep = subsample_context(yc, seed, load_config()["tabpfn"]["max_context"])
     model = _tabpfn(seed)
     model.fit(Xc[keep], yc[keep], overwrite_warning=True)
-    p = model.predict_proba(Xq)
+    # Query rows attend only to the context and normalisation uses the context only, so chunking the
+    # query changes nothing but peak memory (one pass over ~38k jungle rows was killed for OOM).
+    chunk = load_config()["tabpfn"]["predict_chunk"]
+    p = np.vstack([model.predict_proba(Xq[i:i + chunk]) for i in range(0, len(Xq), chunk)])
     out = np.zeros((len(Xq), n_classes))
     out[:, np.asarray(model.classes_, dtype=int)] = p   # align TabPFN's class order with our codes
     return out

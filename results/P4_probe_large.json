@@ -1,0 +1,33 @@
+{
+ "dataset": "jungle",
+ "size": "full",
+ "seed": 0,
+ "n_train": 28684,
+ "n_val": 7171,
+ "n_test": 8964,
+ "tabpfn_rows_scored": 73503,
+ "tabpfn_seconds": 451.3365573339397,
+ "xgb_trials": [
+  {
+   "seconds": 4.471371124964207,
+   "rounds": 1964
+  },
+  {
+   "seconds": 2.085249749943614,
+   "rounds": 1254
+  },
+  {
+   "seconds": 4.606761459028348,
+   "rounds": 2000
+  },
+  {
+   "seconds": 4.240378667018376,
+   "rounds": 2000
+  },
+  {
+   "seconds": 3.9730415410595015,
+   "rounds": 2000
+  }
+ ],
+ "xgb_trial_seconds_mean": 3.8753605084028093
+}

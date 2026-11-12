@@ -30,6 +30,7 @@ tabpfn:
   device: auto        # cuda if Option A smoke test passed, else cpu
   crossfit_folds: 5
   prob_clip: 1.0e-6
+  predict_chunk: 2000  # query rows per forward pass; same result, bounded memory (jungle full OOM'd)
 xgb:
   tree_method: hist
   nthread: 4

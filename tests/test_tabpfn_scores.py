@@ -49,3 +49,23 @@ def test_cache_round_trip(tmp_path):
     for k, v in idx.items():
         assert np.array_equal(d[f"idx_{k}"], v)
     assert d["cf_scheme"] == "skf5"
+
+
+def test_chunked_prediction_matches_single_pass():
+    """Real TabPFN on BreastCancer: scoring the query in chunks gives the same probabilities."""
+    from p012.config import load_config
+    from p012.data import holdout_a, load_dataset
+    from p012.tabpfn_scores import tabpfn_fit_predict
+    sp = holdout_a(load_dataset("BreastCancer"), 0)
+    X_tr, y_tr = sp.part("train")
+    Xq = np.vstack([sp.part("val")[0], sp.part("test")[0]]).astype(float)
+    cfg = load_config()["tabpfn"]
+    old = cfg["predict_chunk"]
+    try:
+        cfg["predict_chunk"] = 10**9
+        one = tabpfn_fit_predict(X_tr.to_numpy(float), y_tr, Xq, 0, 2)
+        cfg["predict_chunk"] = 37
+        chunked = tabpfn_fit_predict(X_tr.to_numpy(float), y_tr, Xq, 0, 2)
+    finally:
+        cfg["predict_chunk"] = old
+    np.testing.assert_allclose(chunked, one, atol=1e-6)

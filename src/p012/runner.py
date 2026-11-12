@@ -91,6 +91,7 @@ def run_unit(protocol: str, ds: Dataset, split: Split, size: str, seed: int, abl
     import torch
     torch.set_num_threads(load_config()["xgb"]["nthread"])
     budget = budgets(protocol)
+    t_unit = time.perf_counter()
 
     sc = get_scores(split, ds, protocol, size, seed, "oof")
     task = make_task(split, ds, sc, seed)
@@ -132,6 +133,10 @@ def run_unit(protocol: str, ds: Dataset, split: Split, size: str, seed: int, abl
         np.savez(d / "PFNB-MLE.npz",
                  **pb.learning_curves(mle.booster, task, pb.Fusion(mle.info["s"], mle.info["b"])))
         s_sweep(task, mle, d.parent / "s_sweep")
+    # wall-clock of the whole unit (incl. TabPFN scoring if not cached), for the sweep time estimate (5.3)
+    (run_dir(protocol, ds.name, size, seed, "x").parent / "unit_time.json").write_text(json.dumps(
+        {"wall_seconds": time.perf_counter() - t_unit, "n_train": len(task.y_tr), "n_val": len(task.y_va),
+         "n_test": len(task.y_te), "n_features": task.X_tr.shape[1], "n_classes": task.n_classes}))
     return "done"
 
 

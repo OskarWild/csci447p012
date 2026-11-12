@@ -37,3 +37,18 @@ PYTHONWARNINGS=ignore conda run -n p012 python scripts/03_bc_course.py      # re
 conda run -n p012 python scripts/04_bc_tables_figures.py
 conda run -n p012 python scripts/90_make_summary.py
 ```
+
+## Phase 4 (2026-11-12, MacBook CPU, branch `sagyzdop/phase4`)
+
+Ran the sweep protocol (CLAUDE.md 5.2) on BreastCancer, diabetes and creditg: every size plus `full`, seeds 0 and 1, all 7 main methods. 34 units, written to `results/runs/sweep/` (each unit also writes `unit_time.json` for the estimate).
+- Paper check: `scripts/06_pilot_check.py` -> `results/tables/P4_pilot_vs_paper.{csv,md,tex}` and the summary in `results/P4_time_estimate.md`. At full size, TabPFN is within 0.005 of the paper on all three datasets, and XGB/Selection/PFNB-Optuna are within 0.02 on diabetes and creditg. Small sizes (n = 10-50) differ more in both directions; with 2 seeds and 10-50 rows this is mostly seed noise. The 5-seed sweep will show it more clearly.
+- Flagged (> 0.02) at full size: BreastCancer XGB, Selection and PFNB-Optuna (about -0.025 to -0.033), and creditg Stacking (+0.042, ours better). The BreastCancer gap has the same cause as Q1: the paper's full size leaves only 45 validation rows, and validation AUC sits at 1.0 for many configurations, so the XGB HPO picks one of them almost at random. PFNB-Optuna's stage 1 equals the XGB search (CLAUDE.md 4.4), so it inherits that choice. TabPFN, which has no HPO, matches the paper. We found no encoding, positive-class or sampling problem, so we keep going (Q1 answer: keep the protocol, report the limitation).
+- Time estimate (CLAUDE.md 5.3): the pilot only reaches n_train = 640, so the largest unit was measured separately: `scripts/07_probe_large.py` -> `results/P4_probe_large.json` (jungle full, 28,684 training rows: TabPFN scoring 451 s, about 3.9 s per XGBoost fit). **Estimated full sweep: 7.2 hours on this Mac with 2 workers** (`results/P4_time_estimate.md`), under the 12-hour limit, so no sizes or seeds are cut.
+- Failure fixed: the first jungle probe was killed by the OS for running out of memory (exit 137). TabPFN scored all ~38k query rows in one forward pass. `tabpfn_fit_predict` now scores queries in chunks of `tabpfn.predict_chunk` = 2000 rows. In TabPFN 0.1.9, query rows attend only to the context and normalisation uses the context only, so the result is unchanged. A new test confirms chunked = single pass on BreastCancer (`pytest -q`: 40 passed). After the fix the probe peaked at 3.7 GB.
+
+Reproduce:
+```
+PYTHONWARNINGS=ignore conda run -n p012 python scripts/05_sweep.py --datasets BreastCancer diabetes creditg --seeds 0 1
+conda run -n p012 python scripts/07_probe_large.py
+conda run -n p012 python scripts/06_pilot_check.py
+```

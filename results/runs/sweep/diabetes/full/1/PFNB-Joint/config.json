@@ -1,0 +1,18 @@
+{
+ "protocol": "sweep",
+ "dataset": "diabetes",
+ "size": "full",
+ "seed": 1,
+ "stratified": true,
+ "note": "",
+ "cf_scheme": "skf5",
+ "method": "PFNB-Joint",
+ "budget": {
+  "xgb": 60,
+  "pfnb": 40,
+  "s": 20
+ },
+ "n_train": 491,
+ "n_val": 122,
+ "n_test": 154
+}
