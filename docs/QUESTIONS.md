@@ -8,3 +8,5 @@ Options: (a) keep the protocol (validation AUC, CLAUDE.md 4.6) and report it as 
 
 ## Q2 (Phase 3): the paper's enqueued s = 1e6 breaks AUC through float saturation
 At s = 1e6 (and visibly from s ~ 1e2 on, `F07_bc_s_sweep`), sigmoid(b + s*z1) is exactly 0 or 1 for most rows, so AUC is computed on ties and falls far below TabPFN's own AUC. PFNB-Optuna picked s = 1e6 in hold-out A seed 3 (test AUC 0.9290). We keep the paper's enqueue (it is the paper replica) and report it. Should the report also include a variant without the 1e6 trial?
+
+**Answer to Q1 and Q2 (2026-11-12, sagyzdop):** keep the protocol as it is. Q1: validation AUC stays the HPO objective; the saturation is reported as a limitation. Q2: PFNB-Optuna keeps the paper's s = 1e6 enqueue (it is the replica); the float-saturation flaw is reported and contrasted with s-MLE's stable s.
