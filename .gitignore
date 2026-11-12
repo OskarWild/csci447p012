@@ -1,0 +1,14 @@
+results/cache/
+results/logs/
+results/runs/**/preds_*.npz
+assets/
+*.cpkt
+*.ckpt
+*.pt
+*.safetensors
+__pycache__/
+.ipynb_checkpoints/
+.pytest_cache/
+.DS_Store
+# The paper PDF is copyrighted by its authors; keep the repo PRIVATE, or uncomment the next line:
+# docs/paper/*.pdf

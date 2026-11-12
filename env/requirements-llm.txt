@@ -1,0 +1,12 @@
+# Stretch env "p012-llm" (RQ4 only) — Python 3.10/3.11, RTX 5080 needs CUDA 12.8 builds.
+# pip install "torch>=2.7" --index-url https://download.pytorch.org/whl/cu128
+transformers>=4.45
+accelerate>=0.33
+sentencepiece>=0.2
+numpy==1.26.4
+pandas==2.1.4
+scikit-learn==1.3.2
+xgboost==2.0.3
+scipy>=1.11,<1.14
+pyyaml>=6.0
+tqdm>=4.66

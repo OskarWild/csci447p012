@@ -1,0 +1,1 @@
+# All numbers: arXiv 2502.02672v2 Appendix B Table 3 (XGBoost + TabPFN), read from the HTML page on 2026-11-11. Rows for other datasets/sizes are not yet filled: add them from the PDF in Phase 0.

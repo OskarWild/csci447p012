@@ -1,0 +1,62 @@
+# All experiment settings. Code reads ONLY from here. Change = log in docs/DEVIATIONS.md.
+project_id: CSCI447P012
+paths:
+  data_root: external/LLM-Boost/data
+  data_subdir: prototypes-naturallanguage-performance-0
+  label_col: y_temp
+  results: results
+  cache: results/cache
+  paper_reference: docs/paper_reference_numbers.csv
+seeds: [0, 1, 2, 3, 4]
+datasets:            # folder names under data_root
+  primary: BreastCancer
+  sweep: [Abalone, Adult, BreastCancer, Churn, HeartDisease, Sharktank, Statlog, Wine,
+          bank, blood, calhousing, car, creditg, diabetes, heart, jungle]
+  paper_config_ablation: [BreastCancer, diabetes, creditg, Abalone, blood]
+positive_class:
+  BreastCancer: M     # other binary datasets: minority class (logged)
+sweep:
+  sizes: [10, 25, 50, 100, 250, 500]   # n train + n val, only if 2n <= pool
+  include_full: true                    # paper's train/val counts from paper_reference
+course_protocol:
+  inner_val_fraction: 0.2
+  cv_folds: 5
+  cv_seed: 0
+  holdout_b_test_fraction: 0.2
+tabpfn:
+  version: "0.1.9"
+  max_context: 1000
+  n_ensemble: 32
+  device: auto        # cuda if Option A smoke test passed, else cpu
+  crossfit_folds: 5
+  prob_clip: 1.0e-6
+xgb:
+  tree_method: hist
+  nthread: 4
+  max_rounds: 2000
+  early_stopping_rounds: 50
+hpo:
+  sampler: tpe
+  trials_pfnb: 40      # tree HPO for PFNB-MLE / PFNB-Optuna stage 1
+  trials_s: 20         # s-only search for PFNB-Optuna
+  trials_xgb: 60       # = trials_pfnb + trials_s (fairness)
+  trials_cv: 25        # per fold in 5-fold CV
+  s_range: [1.0e-4, 1.0e+4]
+  s_enqueue: [0.0, 1.0e+6]
+s_joint:
+  rounds: 2
+s_sweep:
+  n_points: 41
+  range: [1.0e-4, 1.0e+4]
+meta:
+  helps_threshold: 0.001
+  models: [logistic, tree_depth2]
+  evaluation: leave_one_dataset_out
+metrics:
+  ece_bins: 15
+  threshold: 0.5
+figures:
+  dpi: 300
+  formats: [png, pdf]
+parallel:
+  n_jobs: auto         # physical_cores // xgb.nthread
