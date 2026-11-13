@@ -52,3 +52,23 @@ PYTHONWARNINGS=ignore conda run -n p012 python scripts/05_sweep.py --datasets Br
 conda run -n p012 python scripts/07_probe_large.py
 conda run -n p012 python scripts/06_pilot_check.py
 ```
+
+## Phase 5 sweep run (lab PC)
+
+Ran `scripts/05_sweep.py` on the lab PC (Ubuntu, AMD Ryzen 7 9700X, 8 cores / 16 threads, 30 GiB RAM, CPU only: `.venv` has torch 2.1.2+cpu, so the RTX 5080 was not used). **4 workers** (`cpu_count // 4` = 16 // 4). Env check printed `OK` (TabPFN smoke AUC 0.9930) and `pytest -q` passed (40) before the run.
+
+- **Run 1** (2026-11-12 21:47 -> crashed 22:51): `ValueError: Statlog: 446+111 > pool 552`. The paper's Statlog full counts (446 + 111 + 138 test = 695) exceed the 690-row dataset; checked in the PDF (Table 3, every variant). Not noticed until the next morning: the watcher used `pgrep -f 05_sweep.py`, which matched its own command line. **Fix (humans' decision):** when the paper's full counts exceed the pool, use the whole pool at the paper's train/val ratio (Statlog 442 + 110).
+- **Run 2** (2026-11-13 12:12 -> crashed 12:13): `ValueError: The number of classes has to be greater than one; got 1 class` at bank n=10. Random (unstratified) samples could miss a class (24 of 485 units), and a leave-one-out cross-fitting fold could hold a single class. **Fixes:** redraw such samples with a derived seed until train and val hold every class (first draw unchanged, so the other 461 units are unaffected); single-class TabPFN contexts return uniform scores. Before restarting, the 24 redrawn units plus Statlog full were run end to end (all passed).
+- **Run 3** (2026-11-13 12:27 -> finished 16:57, **4.5 h**): TabPFN scoring 12:27-16:12 (sequential; bank, calhousing and jungle `full` take 6-12 min per seed), tree stage 16:12-16:57. Log ends with `all units finished`. Memory stayed at 7-10 GiB used (19-23 GiB available) throughout.
+- **Result: all 485 units finished, every unit dir has all its methods with `metrics.json`, 0 failed units, 0 error lines in the run-3 log.** (455 run in run 3, 30 skipped: 4 Mac pilot cells already done earlier plus the 25 edge-test units.) Crash logs kept locally as `results/logs/sweep_run1_crashed.log`, `sweep_run2_crashed.log` (not in git).
+- Code changed (all in `docs/DEVIATIONS.md`): `src/p012/data.py` (Statlog full; redraw), `src/p012/tabpfn_scores.py` (single-class context), `tests/test_data.py` (2 new asserts). `pytest -q`: 40 passed.
+- Also decided by the humans today (DEVIATIONS): RQ3 uses only the L2-logistic meta-model; RQ4 (LLM-Boost) dropped; the 60-vs-130-trial HPO budget is a listed limitation; newer TabPFN versions are future work.
+- `scripts/06_pilot_check.py` was re-run: `results/tables/P4_pilot_vs_paper.*` now covers all 16 datasets x sizes. Its time estimate in `results/P4_time_estimate.md` ("0.6 hours") is not meaningful any more (it is fitted on finished units with the TabPFN time already cached); the real wall time is 4.5 h (run 3).
+- Commit `190c234` ("phase5: full sweep runs (lab PC)"), **pushed** to `origin/main`. `git pull --rebase` refused because of an unrelated unstaged deletion of `PC_SETUP_COMMANDS.md` (present before this session, left untouched); the remote had no new commits, so the push was a clean fast-forward.
+
+Reproduce:
+```
+.venv/bin/python scripts/00_check_env.py && .venv/bin/python -m pytest -q
+PYTHONWARNINGS=ignore nohup .venv/bin/python scripts/05_sweep.py > results/logs/sweep.log 2>&1 &   # resumable
+PYTHONWARNINGS=ignore .venv/bin/python scripts/06_pilot_check.py
+```
