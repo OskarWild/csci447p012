@@ -3,6 +3,7 @@
 Every split is expressed as positional row indices into the dataset's train pool (and, for
 hold-out B, into pool+test), so the same seed always gives the same rows and overlap is easy to test.
 """
+import logging
 from dataclasses import dataclass, field
 from functools import lru_cache
 
@@ -12,6 +13,8 @@ from sklearn.model_selection import StratifiedKFold, train_test_split
 from sklearn.preprocessing import OrdinalEncoder
 
 from .config import load_config, path
+
+log = logging.getLogger(__name__)
 
 SWEEP_SIZES_KEY = "sizes"
 
@@ -123,6 +126,12 @@ def sweep_split(ds: Dataset, size_label: str, seed: int) -> Split:
         if counts is None:
             raise ValueError(f"{ds.name}: no paper 'full' row")
         n_tr, n_va = counts
+        if n_tr + n_va > n_pool:
+            # Paper counts larger than the repo pool (Statlog: 446+111 = 557 > 552): use the whole pool,
+            # keeping the paper's train/val ratio. See docs/DEVIATIONS.md.
+            n_va = int(round(n_pool * n_va / (n_tr + n_va)))
+            n_tr = n_pool - n_va
+            log.info("%s full: paper counts %s exceed pool %d; using %d+%d", ds.name, counts, n_pool, n_tr, n_va)
     elif size_label == "full_all":
         n_va = int(round(n_pool * load_config()["course_protocol"]["inner_val_fraction"]))
         n_tr = n_pool - n_va
@@ -132,17 +141,30 @@ def sweep_split(ds: Dataset, size_label: str, seed: int) -> Split:
         raise ValueError(f"{ds.name}: {n_tr}+{n_va} > pool {n_pool}")
 
     strat = _can_stratify(ds.y_pool, min(n_tr, n_va))
-    idx = np.arange(n_pool)
-    if n_tr + n_va < n_pool:
-        # A stratified discard needs >= 1 left-over row per class (Wine full: 141 of 142 rows);
-        # with fewer, the few dropped rows are chosen at random.
-        idx, _ = _split(idx, ds.y_pool, n_tr + n_va, seed, strat and n_pool - n_tr - n_va >= ds.n_classes)
-    tr, va = _split(idx, ds.y_pool, n_tr, seed, strat)
+    n_cls = len(np.unique(ds.y_pool))
+    # An unstratified (random) sample can miss a class in train or val (bank n=10: one class only,
+    # which TabPFN cannot fit). Then redraw with a derived seed until both parts hold every class.
+    # Attempt 0 uses `seed` itself, so every split that was already valid is unchanged. See DEVIATIONS.md.
+    for attempt in range(10000):
+        rs = seed if attempt == 0 else seed + 1_000_003 * attempt
+        idx = np.arange(n_pool)
+        if n_tr + n_va < n_pool:
+            # A stratified discard needs >= 1 left-over row per class (Wine full: 141 of 142 rows);
+            # with fewer, the few dropped rows are chosen at random.
+            idx, _ = _split(idx, ds.y_pool, n_tr + n_va, rs, strat and n_pool - n_tr - n_va >= ds.n_classes)
+        tr, va = _split(idx, ds.y_pool, n_tr, rs, strat)
+        if len(np.unique(ds.y_pool[tr])) == n_cls and len(np.unique(ds.y_pool[va])) == n_cls:
+            break
+    else:
+        raise ValueError(f"{ds.name} {size_label} seed {seed}: no sample with every class in train and val")
+    note = "" if strat else "random (unstratified) sample: too few rows per class"
+    if attempt:
+        log.info("%s %s seed %d: random sample missed a class; redrawn %d time(s)", ds.name, size_label, seed, attempt)
+        note += f"; redrawn {attempt}x so train and val hold every class"
     X = pd.concat([ds.X_pool, ds.X_test], ignore_index=True)
     y = np.concatenate([ds.y_pool, ds.y_test])
     test = np.arange(n_pool, n_pool + len(ds.y_test))
-    return Split(X, y, np.sort(tr), np.sort(va), test, strat,
-                 "" if strat else "random (unstratified) sample: too few rows per class")
+    return Split(X, y, np.sort(tr), np.sort(va), test, strat, note)
 
 
 def _inner(train_pool_idx, y, seed):

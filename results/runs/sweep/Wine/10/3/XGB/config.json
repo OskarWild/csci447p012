@@ -1,0 +1,18 @@
+{
+ "protocol": "sweep",
+ "dataset": "Wine",
+ "size": "10",
+ "seed": 3,
+ "stratified": true,
+ "note": "",
+ "cf_scheme": "loo",
+ "method": "XGB",
+ "budget": {
+  "xgb": 60,
+  "pfnb": 40,
+  "s": 20
+ },
+ "n_train": 10,
+ "n_val": 10,
+ "n_test": 36
+}

@@ -1,0 +1,18 @@
+{
+ "protocol": "sweep",
+ "dataset": "heart",
+ "size": "full",
+ "seed": 3,
+ "stratified": true,
+ "note": "",
+ "cf_scheme": "skf5",
+ "method": "XGB",
+ "budget": {
+  "xgb": 60,
+  "pfnb": 40,
+  "s": 20
+ },
+ "n_train": 587,
+ "n_val": 146,
+ "n_test": 184
+}

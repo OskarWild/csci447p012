@@ -1,0 +1,18 @@
+{
+ "protocol": "sweep",
+ "dataset": "Sharktank",
+ "size": "full",
+ "seed": 4,
+ "stratified": true,
+ "note": "",
+ "cf_scheme": "skf5",
+ "method": "Stacking",
+ "budget": {
+  "xgb": 60,
+  "pfnb": 40,
+  "s": 20
+ },
+ "n_train": 316,
+ "n_val": 79,
+ "n_test": 99
+}

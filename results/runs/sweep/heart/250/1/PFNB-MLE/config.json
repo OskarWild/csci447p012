@@ -1,0 +1,18 @@
+{
+ "protocol": "sweep",
+ "dataset": "heart",
+ "size": "250",
+ "seed": 1,
+ "stratified": true,
+ "note": "",
+ "cf_scheme": "skf5",
+ "method": "PFNB-MLE",
+ "budget": {
+  "xgb": 60,
+  "pfnb": 40,
+  "s": 20
+ },
+ "n_train": 250,
+ "n_val": 250,
+ "n_test": 184
+}

@@ -1,0 +1,18 @@
+{
+ "protocol": "sweep",
+ "dataset": "Abalone",
+ "size": "full",
+ "seed": 2,
+ "stratified": true,
+ "note": "",
+ "cf_scheme": "skf5",
+ "method": "Selection",
+ "budget": {
+  "xgb": 60,
+  "pfnb": 40,
+  "s": 20
+ },
+ "n_train": 1336,
+ "n_val": 334,
+ "n_test": 836
+}

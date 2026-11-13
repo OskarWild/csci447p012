@@ -1,0 +1,18 @@
+{
+ "protocol": "sweep",
+ "dataset": "Churn",
+ "size": "full",
+ "seed": 0,
+ "stratified": true,
+ "note": "",
+ "cf_scheme": "skf5",
+ "method": "TabPFN",
+ "budget": {
+  "xgb": 60,
+  "pfnb": 40,
+  "s": 20
+ },
+ "n_train": 2253,
+ "n_val": 563,
+ "n_test": 1000
+}

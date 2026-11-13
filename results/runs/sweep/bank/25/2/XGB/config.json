@@ -1,0 +1,18 @@
+{
+ "protocol": "sweep",
+ "dataset": "bank",
+ "size": "25",
+ "seed": 2,
+ "stratified": false,
+ "note": "random (unstratified) sample: too few rows per class",
+ "cf_scheme": "loo",
+ "method": "XGB",
+ "budget": {
+  "xgb": 60,
+  "pfnb": 40,
+  "s": 20
+ },
+ "n_train": 25,
+ "n_val": 25,
+ "n_test": 9043
+}

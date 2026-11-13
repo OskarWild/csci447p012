@@ -1,0 +1,18 @@
+{
+ "protocol": "sweep",
+ "dataset": "creditg",
+ "size": "full",
+ "seed": 3,
+ "stratified": true,
+ "note": "",
+ "cf_scheme": "skf5",
+ "method": "PFNB-Paper",
+ "budget": {
+  "xgb": 60,
+  "pfnb": 40,
+  "s": 20
+ },
+ "n_train": 640,
+ "n_val": 160,
+ "n_test": 200
+}

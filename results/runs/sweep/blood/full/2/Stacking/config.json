@@ -1,0 +1,18 @@
+{
+ "protocol": "sweep",
+ "dataset": "blood",
+ "size": "full",
+ "seed": 2,
+ "stratified": true,
+ "note": "",
+ "cf_scheme": "skf5",
+ "method": "Stacking",
+ "budget": {
+  "xgb": 60,
+  "pfnb": 40,
+  "s": 20
+ },
+ "n_train": 478,
+ "n_val": 119,
+ "n_test": 150
+}

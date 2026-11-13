@@ -1,0 +1,18 @@
+{
+ "protocol": "sweep",
+ "dataset": "calhousing",
+ "size": "250",
+ "seed": 3,
+ "stratified": true,
+ "note": "",
+ "cf_scheme": "skf5",
+ "method": "TabPFN",
+ "budget": {
+  "xgb": 60,
+  "pfnb": 40,
+  "s": 20
+ },
+ "n_train": 250,
+ "n_val": 250,
+ "n_test": 4128
+}

@@ -1,0 +1,18 @@
+{
+ "protocol": "sweep",
+ "dataset": "bank",
+ "size": "50",
+ "seed": 1,
+ "stratified": true,
+ "note": "",
+ "cf_scheme": "loo",
+ "method": "Stacking",
+ "budget": {
+  "xgb": 60,
+  "pfnb": 40,
+  "s": 20
+ },
+ "n_train": 50,
+ "n_val": 50,
+ "n_test": 9043
+}

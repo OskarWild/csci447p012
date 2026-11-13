@@ -49,6 +49,11 @@ def subsample_context(y: np.ndarray, seed: int, max_context: int) -> np.ndarray:
 def tabpfn_fit_predict(Xc: np.ndarray, yc: np.ndarray, Xq: np.ndarray, seed: int, n_classes: int) -> np.ndarray:
     """Fit TabPFN on (Xc, yc) and return P(class k) for k = 0..n_classes-1 on Xq.
     Classes missing from the context get probability 0 here (clipped later)."""
+    if len(np.unique(yc)) < 2:
+        # Single-class context (leave-one-out fold that holds out the only row of a class, bank n=10):
+        # TabPFN cannot fit, and there is nothing to compare, so return uniform scores (z = 0).
+        log.info("single-class TabPFN context (n=%d): uniform scores for %d row(s)", len(yc), len(Xq))
+        return np.full((len(Xq), n_classes), 1.0 / n_classes)
     keep = subsample_context(yc, seed, load_config()["tabpfn"]["max_context"])
     model = _tabpfn(seed)
     model.fit(Xc[keep], yc[keep], overwrite_warning=True)

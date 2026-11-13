@@ -1,0 +1,27 @@
+{
+ "test": {
+  "auc": 1.0,
+  "log_loss": 0.01349206355822276,
+  "accuracy": 1.0,
+  "precision": 1.0,
+  "recall": 1.0,
+  "f1": 1.0,
+  "brier": 0.0008678665449474192,
+  "ece": 0.01323106719387902
+ },
+ "val_auc": 1.0,
+ "info": {
+  "params": {
+   "eta": 0.07585123514324495,
+   "max_depth": 7,
+   "min_child_weight": 0.1791869451727052,
+   "subsample": 0.7845602152317295,
+   "colsample_bytree": 0.5803962708546756,
+   "lambda": 0.379921546644013,
+   "alpha": 0.001379732934339484,
+   "gamma": 8.483827633331992e-05
+  },
+  "best_iteration": 112,
+  "base_score": null
+ }
+}

@@ -1,0 +1,18 @@
+{
+ "protocol": "sweep",
+ "dataset": "bank",
+ "size": "10",
+ "seed": 0,
+ "stratified": false,
+ "note": "random (unstratified) sample: too few rows per class; redrawn 2x so train and val hold every class",
+ "cf_scheme": "loo",
+ "method": "TabPFN",
+ "budget": {
+  "xgb": 60,
+  "pfnb": 40,
+  "s": 20
+ },
+ "n_train": 10,
+ "n_val": 10,
+ "n_test": 9043
+}

@@ -1,0 +1,18 @@
+{
+ "protocol": "sweep",
+ "dataset": "BreastCancer",
+ "size": "25",
+ "seed": 3,
+ "stratified": true,
+ "note": "",
+ "cf_scheme": "skf5",
+ "method": "Selection",
+ "budget": {
+  "xgb": 60,
+  "pfnb": 40,
+  "s": 20
+ },
+ "n_train": 25,
+ "n_val": 25,
+ "n_test": 114
+}

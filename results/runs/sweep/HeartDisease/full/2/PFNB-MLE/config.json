@@ -1,0 +1,18 @@
+{
+ "protocol": "sweep",
+ "dataset": "HeartDisease",
+ "size": "full",
+ "seed": 2,
+ "stratified": true,
+ "note": "",
+ "cf_scheme": "skf5",
+ "method": "PFNB-MLE",
+ "budget": {
+  "xgb": 60,
+  "pfnb": 40,
+  "s": 20
+ },
+ "n_train": 96,
+ "n_val": 24,
+ "n_test": 61
+}

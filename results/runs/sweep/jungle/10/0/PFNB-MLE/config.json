@@ -1,0 +1,18 @@
+{
+ "protocol": "sweep",
+ "dataset": "jungle",
+ "size": "10",
+ "seed": 0,
+ "stratified": true,
+ "note": "",
+ "cf_scheme": "loo",
+ "method": "PFNB-MLE",
+ "budget": {
+  "xgb": 60,
+  "pfnb": 40,
+  "s": 20
+ },
+ "n_train": 10,
+ "n_val": 10,
+ "n_test": 8964
+}

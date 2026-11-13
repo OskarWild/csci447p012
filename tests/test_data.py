@@ -64,6 +64,11 @@ def test_sweep_sizes_and_counts():
     assert len(s.train_idx) == len(s.val_idx) == 50 and len(s.test_idx) == 114
     full = sweep_split(ds, "full", 0)
     assert (len(full.train_idx), len(full.val_idx)) == (181, 45)
+    st = sweep_split(load_dataset("Statlog"), "full", 0)   # paper 446+111 > pool 552 -> whole pool, same ratio
+    assert (len(st.train_idx), len(st.val_idx)) == (442, 110)
+    assert not set(st.train_idx) & set(st.val_idx)
+    bk = sweep_split(load_dataset("bank"), "10", 0)        # random sample: must still hold both classes
+    assert len(np.unique(bk.y[bk.train_idx])) == 2 and len(np.unique(bk.y[bk.val_idx])) == 2
     a = holdout_a(ds, 0)
     assert len(a.train_idx) + len(a.val_idx) == 455 and len(a.test_idx) == 114
     folds = cv_splits(ds)

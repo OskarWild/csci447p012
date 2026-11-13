@@ -1,0 +1,18 @@
+{
+ "protocol": "sweep",
+ "dataset": "jungle",
+ "size": "500",
+ "seed": 1,
+ "stratified": true,
+ "note": "",
+ "cf_scheme": "skf5",
+ "method": "PFNB-Joint",
+ "budget": {
+  "xgb": 60,
+  "pfnb": 40,
+  "s": 20
+ },
+ "n_train": 500,
+ "n_val": 500,
+ "n_test": 8964
+}

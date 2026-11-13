@@ -1,0 +1,18 @@
+{
+ "protocol": "sweep",
+ "dataset": "jungle",
+ "size": "full",
+ "seed": 3,
+ "stratified": true,
+ "note": "",
+ "cf_scheme": "skf5",
+ "method": "TabPFN",
+ "budget": {
+  "xgb": 60,
+  "pfnb": 40,
+  "s": 20
+ },
+ "n_train": 28684,
+ "n_val": 7171,
+ "n_test": 8964
+}
